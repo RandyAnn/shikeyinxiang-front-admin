@@ -1,0 +1,189 @@
+// src/assets/styles/global.scss
+// 全局样式
+
+@use './variables.scss' as vars;
+
+// 重置样式
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+  font-size: vars.$font-size-base;
+  color: vars.$text-regular;
+  background-color: vars.$background-base;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: vars.$background-base;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c0c4cc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #909399;
+}
+
+// 通用样式类
+.page-container {
+  padding: vars.$spacing-large;
+  background-color: vars.$background-base;
+  min-height: calc(100vh - #{vars.$header-height});
+}
+
+.card-container {
+  background-color: vars.$background-white;
+  border-radius: vars.$border-radius-base;
+  box-shadow: vars.$box-shadow-light;
+  padding: vars.$spacing-large;
+  margin-bottom: vars.$spacing-large;
+}
+
+.page-title {
+  font-size: vars.$font-size-extra-large;
+  font-weight: 500;
+  color: vars.$text-primary;
+  margin-bottom: vars.$spacing-large;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-primary {
+  color: vars.$primary-color;
+}
+
+.text-success {
+  color: vars.$success-color;
+}
+
+.text-warning {
+  color: vars.$warning-color;
+}
+
+.text-danger {
+  color: vars.$danger-color;
+}
+
+.text-info {
+  color: vars.$info-color;
+}
+
+.mb-mini {
+  margin-bottom: vars.$spacing-mini;
+}
+
+.mb-small {
+  margin-bottom: vars.$spacing-small;
+}
+
+.mb-base {
+  margin-bottom: vars.$spacing-base;
+}
+
+.mb-large {
+  margin-bottom: vars.$spacing-large;
+}
+
+.mt-mini {
+  margin-top: vars.$spacing-mini;
+}
+
+.mt-small {
+  margin-top: vars.$spacing-small;
+}
+
+.mt-base {
+  margin-top: vars.$spacing-base;
+}
+
+.mt-large {
+  margin-top: vars.$spacing-large;
+}
+
+// 表单样式
+.form-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+// 表格操作按钮
+.table-actions {
+  .el-button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
+
+// 分页容器
+.pagination-container {
+  margin-top: vars.$spacing-large;
+  text-align: right;
+}
+
+// 搜索表单
+.search-form {
+  margin-bottom: vars.$spacing-large;
+  padding: vars.$spacing-base;
+  background-color: vars.$background-white;
+  border-radius: vars.$border-radius-base;
+}
+
+// 状态标签
+.status-tag {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+
+  &.active {
+    background-color: rgba(vars.$success-color, 0.1);
+    color: vars.$success-color;
+  }
+
+  &.inactive {
+    background-color: rgba(vars.$info-color, 0.1);
+    color: vars.$info-color;
+  }
+
+  &.warning {
+    background-color: rgba(vars.$warning-color, 0.1);
+    color: vars.$warning-color;
+  }
+
+  &.danger {
+    background-color: rgba(vars.$danger-color, 0.1);
+    color: vars.$danger-color;
+  }
+}
