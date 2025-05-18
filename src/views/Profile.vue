@@ -4,58 +4,24 @@
       <el-col :span="8">
         <el-card shadow="hover" class="profile-card">
           <div class="profile-header">
-            <el-avatar :size="100" icon="el-icon-user-solid"></el-avatar>
+            <el-avatar :size="100" icon="el-icon-user-solid" class="profile-avatar"></el-avatar>
             <h3 class="profile-name">{{ user.username }}</h3>
-            <p class="profile-role">{{ user.role === 'ADMIN' ? '管理员' : '普通用户' }}</p>
+            <p class="profile-role">
+              <el-tag :type="user.role === 'ADMIN' ? 'danger' : 'success'" effect="dark">
+                {{ user.role === 'ADMIN' ? '管理员' : '普通用户' }}
+              </el-tag>
+            </p>
           </div>
           <div class="profile-info">
             <div class="info-item">
               <i class="el-icon-message"></i>
               <span>{{ user.email || '未设置邮箱' }}</span>
             </div>
-            <div class="info-item">
-              <i class="el-icon-phone"></i>
-              <span>{{ user.phone || '未设置手机号' }}</span>
-            </div>
-            <div class="info-item">
-              <i class="el-icon-location"></i>
-              <span>{{ user.location || '未设置地址' }}</span>
-            </div>
-          </div>
-          <div class="profile-actions">
-            <el-button type="primary" icon="el-icon-edit" round>编辑资料</el-button>
           </div>
         </el-card>
       </el-col>
       
       <el-col :span="16">
-        <el-card shadow="hover" class="info-card">
-          <div slot="header">
-            <span>基本信息</span>
-          </div>
-          <el-form label-position="left" label-width="100px" :model="userInfo">
-            <el-form-item label="用户名">
-              <el-input v-model="userInfo.username" disabled></el-input>
-            </el-form-item>
-            <el-form-item label="邮箱">
-              <el-input v-model="userInfo.email"></el-input>
-            </el-form-item>
-            <el-form-item label="手机号">
-              <el-input v-model="userInfo.phone"></el-input>
-            </el-form-item>
-            <el-form-item label="地址">
-              <el-input v-model="userInfo.location"></el-input>
-            </el-form-item>
-            <el-form-item label="个人简介">
-              <el-input type="textarea" v-model="userInfo.bio" :rows="4"></el-input>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" @click="saveUserInfo">保存</el-button>
-              <el-button @click="resetForm">重置</el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
-        
         <el-card shadow="hover" class="security-card">
           <div slot="header">
             <span>安全设置</span>
@@ -65,23 +31,7 @@
               <div class="security-title">账户密码</div>
               <div class="security-desc">定期更改密码可以保护账户安全</div>
             </div>
-            <el-button type="text" @click="showChangePasswordDialog">修改</el-button>
-          </div>
-          <el-divider></el-divider>
-          <div class="security-item">
-            <div class="security-info">
-              <div class="security-title">绑定手机</div>
-              <div class="security-desc">已绑定手机：{{ userInfo.phone || '未绑定' }}</div>
-            </div>
-            <el-button type="text">{{ userInfo.phone ? '更换' : '绑定' }}</el-button>
-          </div>
-          <el-divider></el-divider>
-          <div class="security-item">
-            <div class="security-info">
-              <div class="security-title">登录日志</div>
-              <div class="security-desc">查看近期登录记录，确保账号安全</div>
-            </div>
-            <el-button type="text">查看</el-button>
+            <el-button type="primary" plain size="small" @click="showChangePasswordDialog">修改</el-button>
           </div>
         </el-card>
       </el-col>
@@ -90,8 +40,8 @@
     <!-- 修改密码对话框 -->
     <el-dialog title="修改密码" :visible.sync="passwordDialogVisible" width="500px">
       <el-form :model="passwordForm" :rules="passwordRules" ref="passwordForm" label-width="100px">
-        <el-form-item label="当前密码" prop="currentPassword">
-          <el-input v-model="passwordForm.currentPassword" type="password" show-password></el-input>
+        <el-form-item label="当前密码" prop="oldPassword">
+          <el-input v-model="passwordForm.oldPassword" type="password" show-password></el-input>
         </el-form-item>
         <el-form-item label="新密码" prop="newPassword">
           <el-input v-model="passwordForm.newPassword" type="password" show-password></el-input>
@@ -101,18 +51,20 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="passwordDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="changePassword" :loading="passwordLoading">确 定</el-button>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="changePassword" :loading="passwordLoading">确定</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
+import { changePassword } from '@/api/auth';
+
 export default {
   name: 'ProfileView',
   data() {
-    // 密码验证一致性的校验规则
+    // 密码确认验证
     const validateConfirmPassword = (rule, value, callback) => {
       if (value !== this.passwordForm.newPassword) {
         callback(new Error('两次输入的密码不一致'));
@@ -122,27 +74,25 @@ export default {
     };
     
     return {
-      userInfo: {
-        username: '',
-        email: '',
-        phone: '',
-        location: '',
-        bio: ''
+      user: {
+        username: this.$store.getters['auth/user']?.username || '用户名',
+        email: this.$store.getters['auth/user']?.email || '',
+        role: this.$store.getters['auth/user']?.role || 'USER'
       },
       passwordDialogVisible: false,
       passwordLoading: false,
       passwordForm: {
-        currentPassword: '',
+        oldPassword: '',
         newPassword: '',
         confirmPassword: ''
       },
       passwordRules: {
-        currentPassword: [
+        oldPassword: [
           { required: true, message: '请输入当前密码', trigger: 'blur' }
         ],
         newPassword: [
           { required: true, message: '请输入新密码', trigger: 'blur' },
-          { min: 6, max: 30, message: '长度在 6 到 30 个字符', trigger: 'blur' }
+          { min: 6, message: '密码长度不能小于6个字符', trigger: 'blur' }
         ],
         confirmPassword: [
           { required: true, message: '请再次输入新密码', trigger: 'blur' },
@@ -151,59 +101,44 @@ export default {
       }
     };
   },
-  computed: {
-    user() {
-      return this.$store.getters['auth/user'];
-    }
-  },
-  created() {
-    // 初始化用户信息
-    this.userInfo = {
-      username: this.user.username,
-      email: this.user.email || '',
-      phone: this.user.phone || '',
-      location: this.user.location || '',
-      bio: this.user.bio || ''
-    };
-  },
   methods: {
-    saveUserInfo() {
-      this.$message.success('个人信息保存成功');
-      // 这里应该调用更新用户信息的API
-      // await updateUserInfo(this.userInfo);
-    },
-    resetForm() {
-      this.userInfo = {
-        username: this.user.username,
-        email: this.user.email || '',
-        phone: this.user.phone || '',
-        location: this.user.location || '',
-        bio: this.user.bio || ''
-      };
-      this.$message.info('表单已重置');
-    },
     showChangePasswordDialog() {
       this.passwordDialogVisible = true;
       this.passwordForm = {
-        currentPassword: '',
+        oldPassword: '',
         newPassword: '',
         confirmPassword: ''
       };
-      this.$nextTick(() => {
-        this.$refs.passwordForm && this.$refs.passwordForm.clearValidate();
-      });
     },
     changePassword() {
       this.$refs.passwordForm.validate(async valid => {
         if (valid) {
           this.passwordLoading = true;
           try {
-            // 这里应该调用修改密码的API
-            // await changePassword(this.passwordForm);
-            this.$message.success('密码修改成功');
-            this.passwordDialogVisible = false;
+            // 使用API调用发送密码修改请求，只发送需要的字段
+            const response = await changePassword({
+              oldPassword: this.passwordForm.oldPassword,
+              newPassword: this.passwordForm.newPassword
+            });
+            
+            // 请求成功
+            if (response.data.code === 200) {
+              this.$message.success(response.data.message || '密码修改成功');
+              this.passwordDialogVisible = false;
+              
+              // 延迟一秒后执行退出登录操作
+              setTimeout(() => {
+                // 调用store的logout方法清除登录状态
+                this.$store.dispatch('auth/logout');
+                // 跳转到登录页面
+                this.$router.push('/login');
+              }, 1000);
+            } else {
+              this.$message.error(response.data.message || '密码修改失败');
+            }
           } catch (error) {
-            this.$message.error('密码修改失败: ' + error.message);
+            console.error('修改密码失败:', error);
+            this.$message.error(error.response?.data?.message || '密码修改失败，请重试');
           } finally {
             this.passwordLoading = false;
           }
@@ -216,31 +151,42 @@ export default {
 
 <style scoped>
 .profile-container {
-  padding: 20px;
+  padding: 0;
 }
 
 .profile-card {
   text-align: center;
   margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .profile-header {
-  padding: 20px 0;
+  padding: 30px 0;
+  background: linear-gradient(135deg, #2a9d5c, #67C23A);
+  color: white;
+}
+
+.profile-avatar {
+  background-color: white;
+  color: #2a9d5c;
+  font-size: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .profile-name {
-  margin: 15px 0 5px;
+  margin: 15px 0 10px;
   font-size: 20px;
+  color: white;
 }
 
 .profile-role {
   margin: 0;
-  color: #909399;
 }
 
 .profile-info {
   text-align: left;
-  padding: 20px 0;
+  padding: 20px;
 }
 
 .info-item {
@@ -250,37 +196,39 @@ export default {
 }
 
 .info-item i {
-  font-size: 18px;
-  color: #409EFF;
   margin-right: 10px;
+  font-size: 18px;
+  color: #2a9d5c;
 }
 
 .profile-actions {
-  padding: 10px 0;
+  padding: 0 20px 20px;
 }
 
-.info-card {
+.info-card, .security-card {
   margin-bottom: 20px;
-}
-
-.security-card {
-  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .security-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  padding: 15px 0;
 }
 
 .security-title {
-  font-size: 16px;
+  font-weight: 600;
   margin-bottom: 5px;
 }
 
 .security-desc {
-  color: #909399;
-  font-size: 14px;
+  color: #718096;
+  font-size: 13px;
+}
+
+.dialog-footer {
+  text-align: right;
 }
 </style> 

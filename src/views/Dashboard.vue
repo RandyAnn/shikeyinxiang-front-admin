@@ -1,187 +1,168 @@
 <template>
-  <el-container class="dashboard-container">
-    <el-aside width="220px" class="aside-menu">
-      <div class="logo-container">
-        <img src="../assets/logo.png" alt="Logo" class="logo" />
-        <h3>管理系统</h3>
-      </div>
-      <el-menu
-        :default-active="activeMenu"
-        class="el-menu-vertical"
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
-        router
-        unique-opened
-      >
-        <el-menu-item index="/">
-          <i class="el-icon-s-home"></i>
-          <span slot="title">首页</span>
-        </el-menu-item>
-        
-        <el-menu-item index="/users" v-if="isAdmin">
-          <i class="el-icon-user"></i>
-          <span slot="title">用户管理</span>
-        </el-menu-item>
-        
-        <el-submenu index="3">
-          <template slot="title">
-            <i class="el-icon-setting"></i>
-            <span>系统设置</span>
-          </template>
-          <el-menu-item index="/profile">
-            <i class="el-icon-user-solid"></i>
-            <span>个人信息</span>
-          </el-menu-item>
-          <el-menu-item index="/settings">
-            <i class="el-icon-s-tools"></i>
-            <span>系统配置</span>
-          </el-menu-item>
-        </el-submenu>
-      </el-menu>
-    </el-aside>
-    
-    <el-container>
-      <el-header class="main-header">
-        <div class="header-left">
-          <i class="el-icon-s-fold toggle-sidebar"></i>
-          <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="$route.meta.title">{{ $route.meta.title }}</el-breadcrumb-item>
-          </el-breadcrumb>
-        </div>
-        <div class="header-right">
-          <el-dropdown trigger="click">
-            <span class="user-dropdown">
-              <el-avatar size="small" icon="el-icon-user"></el-avatar>
-              <span class="username">{{ user.username }}</span>
-              <i class="el-icon-caret-bottom"></i>
-            </span>
-            <el-dropdown-menu slot="dropdown">
-              <el-dropdown-item icon="el-icon-user">个人中心</el-dropdown-item>
-              <el-dropdown-item icon="el-icon-setting">账号设置</el-dropdown-item>
-              <el-dropdown-item divided icon="el-icon-switch-button" @click.native="logout">退出登录</el-dropdown-item>
-            </el-dropdown-menu>
-          </el-dropdown>
-        </div>
-      </el-header>
-      
-      <el-main class="main-content">
-        <router-view />
-      </el-main>
-      
-      <el-footer class="main-footer">
-        © 2025 管理系统 - 版权所有
-      </el-footer>
-    </el-container>
-  </el-container>
+  <div class="dashboard">
+    <el-row :gutter="20">
+      <el-col :span="6" v-for="(card, index) in statCards" :key="index">
+        <stat-card
+          :title="card.title"
+          :value="card.value"
+          :icon="card.icon"
+          :icon-color="card.color"
+          :trend="card.trend"
+          :rate="card.rate"
+          :loading="loading"
+        />
+      </el-col>
+    </el-row>
+
+    <el-row :gutter="20">
+      <el-col :span="12">
+        <trend-chart />
+      </el-col>
+      <el-col :span="12">
+        <popular-food-chart />
+      </el-col>
+    </el-row>
+
+    <latest-food-records />
+  </div>
 </template>
 
 <script>
+// import { mapActions } from 'vuex'
+import StatCard from '@/components/dashboard/StatCard.vue'
+import TrendChart from '@/components/dashboard/TrendChart.vue'
+import PopularFoodChart from '@/components/dashboard/PopularFoodChart.vue'
+import LatestFoodRecords from '@/components/dashboard/LatestFoodRecords.vue'
+
 export default {
   name: 'DashboardView',
+  components: {
+    StatCard,
+    TrendChart,
+    PopularFoodChart,
+    LatestFoodRecords
+  },
+  data() {
+    return {
+      loading: true,
+      statCards: [
+        {
+          title: '总用户数',
+          value: '0',
+          icon: 'el-icon-user',
+          color: '#3B82F6',
+          trend: 'up',
+          rate: '0%'
+        },
+        {
+          title: '今日饮食记录',
+          value: '0',
+          icon: 'el-icon-dish',
+          color: '#10B981',
+          trend: 'up',
+          rate: '0%'
+        },
+        {
+          title: '营养达标率',
+          value: '0%',
+          icon: 'el-icon-data-line',
+          color: '#F59E0B',
+          trend: 'up',
+          rate: '0%'
+        },
+        {
+          title: '推荐准确率',
+          value: '0%',
+          icon: 'el-icon-aim',
+          color: '#EF4444',
+          trend: 'up',
+          rate: '0%'
+        }
+      ],
+      lastStats: {
+        totalUsers: 0,
+        todayRecords: 0,
+        nutritionComplianceRate: 0,
+        recommendationAccuracy: 0
+      }
+    }
+  },
   computed: {
-    user() {
-      return this.$store.getters['auth/user'];
-    },
-    isAdmin() {
-      return this.user && this.user.role === 'ADMIN';
-    },
-    activeMenu() {
-      return this.$route.path;
+  },
+  created() {
+    this.fetchDashboardStats()
+  },
+  mounted() {
+    // 设置定时刷新
+    this.refreshInterval = setInterval(() => {
+      this.fetchDashboardStats()
+    }, 5 * 60 * 1000)
+  },
+  beforeDestroy() {
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval)
     }
   },
   methods: {
-    logout() {
-      this.$store.dispatch('auth/logout');
-      this.$router.push('/login');
+    async fetchDashboardStats() {
+      this.loading = true
+
+      try {
+        const response = await this.$store.dispatch('dashboard/fetchDashboardStats')
+
+        if (response && response.data && response.data.data) {
+          const stats = response.data.data
+
+          const usersTrend = this.calculateTrend(stats.totalUsers, this.lastStats.totalUsers)
+          const recordsTrend = this.calculateTrend(stats.todayRecords, this.lastStats.todayRecords)
+          const complianceTrend = this.calculateTrend(stats.nutritionComplianceRate, this.lastStats.nutritionComplianceRate)
+          const accuracyTrend = this.calculateTrend(stats.recommendationAccuracy, this.lastStats.recommendationAccuracy)
+
+          this.statCards[0].value = this.formatNumber(stats.totalUsers)
+          this.statCards[0].trend = usersTrend.direction
+          this.statCards[0].rate = usersTrend.rate
+
+          this.statCards[1].value = this.formatNumber(stats.todayRecords)
+          this.statCards[1].trend = recordsTrend.direction
+          this.statCards[1].rate = recordsTrend.rate
+
+          this.statCards[2].value = `${Math.round(stats.nutritionComplianceRate)}%`
+          this.statCards[2].trend = complianceTrend.direction
+          this.statCards[2].rate = complianceTrend.rate
+
+          this.statCards[3].value = `${Math.round(stats.recommendationAccuracy)}%`
+          this.statCards[3].trend = accuracyTrend.direction
+          this.statCards[3].rate = accuracyTrend.rate
+
+          this.lastStats = { ...stats }
+        }
+      } catch (error) {
+        console.error('获取仪表盘数据失败', error)
+        this.$message.error('获取仪表盘数据失败，请稍后重试')
+      } finally {
+        this.loading = false
+      }
+    },
+    calculateTrend(current, previous) {
+      if (!previous) return { direction: 'up', rate: '0%' }
+
+      const change = current - previous
+      const percentage = previous !== 0 ? Math.abs(Math.round((change / previous) * 100)) : 0
+
+      return {
+        direction: change >= 0 ? 'up' : 'down',
+        rate: `${percentage}%`
+      }
+    },
+    formatNumber(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     }
   }
-};
+}
 </script>
 
 <style scoped>
-.dashboard-container {
-  height: 100vh;
-}
-
-.aside-menu {
-  background-color: #304156;
-  transition: width 0.3s;
-  overflow-x: hidden;
-}
-
-.logo-container {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #2b3649;
-  color: #fff;
-  padding: 0 10px;
-}
-
-.logo {
-  width: 30px;
-  height: 30px;
-  margin-right: 10px;
-}
-
-.el-menu-vertical {
-  border-right: none;
-}
-
-.main-header {
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 20px;
-  height: 60px !important;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-}
-
-.toggle-sidebar {
-  font-size: 20px;
-  margin-right: 20px;
-  cursor: pointer;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.user-dropdown {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.username {
-  margin: 0 5px;
-  color: #606266;
-}
-
-.main-content {
-  background-color: #f0f2f5;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.main-footer {
-  text-align: center;
-  color: #606266;
-  font-size: 14px;
-  padding: 15px;
-  background-color: #fff;
-  border-top: 1px solid #e6e6e6;
-  height: 50px !important;
-  line-height: 20px;
+.dashboard {
+  padding: 10px;
 }
 </style>

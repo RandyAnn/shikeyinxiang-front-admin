@@ -2,27 +2,28 @@
   <div class="login-container">
     <div class="login-content">
       <div class="brand-section">
-        <h1 class="brand-title">优智云平台</h1>
-        <p class="brand-subtitle">智能办公，从这里开始</p>
+        <h1 class="brand-title">饮食记录管理后台</h1>
+        <p class="brand-subtitle">科学饮食，健康生活</p>
+        
         <div class="features">
           <div class="feature-item">
-            <i class="el-icon-success"></i>
-            <span>安全可靠</span>
+            <i class="el-icon-dish"></i>
+            <span>饮食记录</span>
           </div>
           <div class="feature-item">
-            <i class="el-icon-lightning"></i>
-            <span>高效便捷</span>
+            <i class="el-icon-data-analysis"></i>
+            <span>营养分析</span>
           </div>
           <div class="feature-item">
-            <i class="el-icon-cloudy"></i>
-            <span>云端协作</span>
+            <i class="el-icon-light-rain"></i>
+            <span>智能推荐</span>
           </div>
         </div>
       </div>
       
       <div class="form-section">
         <div class="form-container">
-          <h2 class="form-title">欢迎登录</h2>
+          <h2 class="form-title">管理员登录</h2>
           
           <el-form :model="loginForm" :rules="rules" ref="loginForm" @submit.native.prevent>
             <el-form-item prop="username">
@@ -30,7 +31,7 @@
                 <i class="el-icon-user"></i>
                 <el-input 
                   v-model="loginForm.username" 
-                  placeholder="请输入用户名"
+                  placeholder="请输入管理员账号"
                   @keyup.enter.native="handleLogin">
                 </el-input>
               </div>
@@ -64,12 +65,11 @@
               class="login-button" 
               :loading="loading" 
               @click="handleLogin">
-              登 录
+              管理员登录
             </el-button>
             
-            <div class="register-link">
-              <span>还没有账号？</span>
-              <el-link type="primary" @click="$router.push('/register')">立即注册</el-link>
+            <div class="system-entry">
+              <span>系统管理员专用入口</span>
             </div>
           </el-form>
         </div>
@@ -89,12 +89,10 @@ export default {
       },
       rules: {
         username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
-          { min: 3, message: '用户名至少3个字符', trigger: 'blur' }
+          { required: true, message: '请输入管理员账号', trigger: 'blur' }
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: 'blur' },
-          { min: 6, message: '密码至少6个字符', trigger: 'blur' }
+          { required: true, message: '请输入密码', trigger: 'blur' }
         ]
       },
       loading: false,
@@ -113,7 +111,16 @@ export default {
               password: this.loginForm.password,
               remember: this.rememberMe
             });
-            this.$router.push('/');
+            
+            // 登录成功后检查用户角色
+            const isAdmin = this.$store.getters['auth/user']?.role === 'ADMIN';
+            if (isAdmin) {
+              // 是管理员，跳转到首页
+              this.$router.push('/');
+            } else {
+              // 不是管理员，跳转到无权限页面
+              this.$router.push('/unauthorized');
+            }
           } catch (error) {
             this.$message.error('登录失败: ' + (error.response?.data?.message || error.message));
           } finally {
@@ -122,6 +129,14 @@ export default {
         }
       });
     }
+  },
+  mounted() {
+    document.body.classList.add('login-page');
+    document.documentElement.classList.add('login-page');
+  },
+  beforeDestroy() {
+    document.body.classList.remove('login-page');
+    document.documentElement.classList.remove('login-page');
   }
 };
 </script>
@@ -129,11 +144,18 @@ export default {
 <style scoped>
 .login-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #8E2DE2, #4A00E0);
+  background: #2a9d5c;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
 }
 
 .login-content {
@@ -144,12 +166,12 @@ export default {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   display: flex;
   overflow: hidden;
-  animation: fadeIn 0.6s ease-out;
+  margin: 2rem;
 }
 
 .brand-section {
   flex: 2;
-  background: linear-gradient(135deg, #9333EA, #7C3AED);
+  background: #2a9d5c;
   padding: 3rem;
   color: white;
   display: flex;
@@ -166,6 +188,7 @@ export default {
 .brand-subtitle {
   font-size: 1.25rem;
   margin-bottom: 3rem;
+  opacity: 0.9;
 }
 
 .features {
@@ -190,6 +213,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #f0f0f0;
 }
 
 .form-container {
@@ -202,6 +226,7 @@ export default {
   font-weight: 600;
   margin-bottom: 2.5rem;
   text-align: center;
+  color: #333;
 }
 
 .custom-input {
@@ -240,31 +265,21 @@ export default {
   height: 50px;
   border-radius: 8px;
   font-size: 1.1rem;
-  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  background: #2a9d5c;
   border: none;
   margin-bottom: 1.5rem;
   transition: all 0.3s ease;
 }
 
 .login-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  background: #238c4e;
 }
 
-.register-link {
+.system-entry {
   text-align: center;
   margin-top: 1.5rem;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  color: #666;
+  font-size: 0.9rem;
 }
 
 /* 响应式调整 */
@@ -281,5 +296,22 @@ export default {
   .form-section {
     padding: 2rem;
   }
+}
+</style>
+
+<style>
+/* 只在登录页面应用overflow: hidden */
+body.login-page, html.login-page {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+}
+
+/* 保持基本的边距清除 */
+body, html {
+  margin: 0;
+  padding: 0;
 }
 </style>

@@ -2,13 +2,15 @@
   <div class="home-container">
     <el-row :gutter="20">
       <el-col :span="6" v-for="(card, index) in statCards" :key="index">
-        <el-card shadow="hover" class="stat-card" :body-style="{ padding: '20px' }">
-          <div class="stat-icon" :style="{ backgroundColor: card.color }">
-            <i :class="card.icon"></i>
-          </div>
-          <div class="stat-info">
-            <div class="stat-title">{{ card.title }}</div>
-            <div class="stat-value">{{ card.value }}</div>
+        <el-card shadow="hover" class="stat-card">
+          <div class="stat-content">
+            <div class="stat-icon" :style="{ backgroundColor: card.color }">
+              <i :class="card.icon"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-title">{{ card.title }}</div>
+              <div class="stat-value">{{ card.value }}</div>
+            </div>
           </div>
         </el-card>
       </el-col>
@@ -65,14 +67,14 @@
       </el-col>
       <el-col :span="12">
         <el-card shadow="hover" class="todo-card">
-          <div slot="header">
+          <div slot="header" class="todo-header">
             <span>待办事项</span>
-            <el-button style="float: right; padding: 3px 0" type="text">添加</el-button>
+            <el-button style="float: right; padding: 3px 0" type="text" @click="addTodo">添加</el-button>
           </div>
           <el-table :data="todos" style="width: 100%">
             <el-table-column width="40">
               <template slot-scope="scope">
-                <el-checkbox v-model="scope.row.done"></el-checkbox>
+                <el-checkbox v-model="scope.row.done" @change="toggleTodo(scope.row)"></el-checkbox>
               </template>
             </el-table-column>
             <el-table-column prop="content">
@@ -80,7 +82,18 @@
                 <span :class="{ 'todo-done': scope.row.done }">{{ scope.row.content }}</span>
               </template>
             </el-table-column>
-            <el-table-column width="120" prop="deadline"></el-table-column>
+            <el-table-column width="120">
+              <template slot-scope="scope">
+                <el-tag size="small" :type="scope.row.priority === 'high' ? 'danger' : scope.row.priority === 'medium' ? 'warning' : 'info'">
+                  {{ scope.row.priority === 'high' ? '紧急' : scope.row.priority === 'medium' ? '重要' : '普通' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column width="60">
+              <template slot-scope="scope">
+                <el-button type="text" icon="el-icon-delete" @click="removeTodo(scope.$index)"></el-button>
+              </template>
+            </el-table-column>
           </el-table>
         </el-card>
       </el-col>
@@ -95,108 +108,96 @@ export default {
     return {
       timeRange: 'week',
       statCards: [
-        {
-          title: '用户总数',
-          value: '1,234',
-          icon: 'el-icon-user',
-          color: '#409EFF'
-        },
-        {
-          title: '今日访问',
-          value: '423',
-          icon: 'el-icon-view',
-          color: '#67C23A'
-        },
-        {
-          title: '系统消息',
-          value: '25',
-          icon: 'el-icon-message',
-          color: '#E6A23C'
-        },
-        {
-          title: '待处理事项',
-          value: '12',
-          icon: 'el-icon-s-claim',
-          color: '#F56C6C'
-        }
+        { title: '用户总数', value: '1,234', icon: 'el-icon-user', color: '#8B5CF6' },
+        { title: '今日访问', value: '423', icon: 'el-icon-view', color: '#3B82F6' },
+        { title: '系统消息', value: '25', icon: 'el-icon-message', color: '#10B981' },
+        { title: '待办任务', value: '8', icon: 'el-icon-s-claim', color: '#F59E0B' }
       ],
       activities: [
-        {
-          content: '完成了用户管理模块的开发',
-          timestamp: '2023-10-15 14:30',
-          type: 'success',
-          color: '#67C23A'
-        },
-        {
-          content: '修复了登录页面的bug',
-          timestamp: '2023-10-14 10:20',
-          type: 'primary',
-          color: '#409EFF'
-        },
-        {
-          content: '新增了数据统计功能',
-          timestamp: '2023-10-13 16:45',
-          type: 'warning',
-          color: '#E6A23C'
-        },
-        {
-          content: '系统上线',
-          timestamp: '2023-10-10 09:00',
-          type: 'info',
-          color: '#909399'
-        }
+        { content: '张三完成了任务审批', timestamp: '2023-10-10 10:30', type: 'success', color: '#10B981' },
+        { content: '系统更新至v2.3.0版本', timestamp: '2023-10-09 14:20', type: 'info', color: '#3B82F6' },
+        { content: '李四提交了请假申请', timestamp: '2023-10-08 09:15', type: 'warning', color: '#F59E0B' },
+        { content: '王五创建了新项目', timestamp: '2023-10-07 16:45', type: 'primary', color: '#8B5CF6' },
+        { content: '服务器例行维护', timestamp: '2023-10-06 20:00', type: 'danger', color: '#EF4444' }
       ],
       todos: [
-        {
-          content: '完成首页设计',
-          deadline: '今天',
-          done: true
-        },
-        {
-          content: '实现用户管理功能',
-          deadline: '明天',
-          done: false
-        },
-        {
-          content: '修复已知bug',
-          deadline: '10月20日',
-          done: false
-        },
-        {
-          content: '优化系统性能',
-          deadline: '10月25日',
-          done: false
-        }
+        { content: '完成项目方案', done: false, priority: 'high' },
+        { content: '准备周会材料', done: false, priority: 'medium' },
+        { content: '回复客户邮件', done: true, priority: 'medium' },
+        { content: '安排团队建设活动', done: false, priority: 'low' },
+        { content: '更新系统文档', done: false, priority: 'low' }
       ]
     };
+  },
+  methods: {
+    toggleTodo(todo) {
+      // 这里可以调用API更新待办状态
+      console.log('切换待办状态:', todo);
+    },
+    addTodo() {
+      this.$prompt('请输入待办事项', '添加待办', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入待办内容'
+      }).then(({ value }) => {
+        if (value) {
+          this.todos.unshift({
+            content: value,
+            done: false,
+            priority: 'medium'
+          });
+          this.$message.success('添加成功');
+        }
+      }).catch(() => {});
+    },
+    removeTodo(index) {
+      this.$confirm('确定删除该待办事项?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.todos.splice(index, 1);
+        this.$message.success('删除成功');
+      }).catch(() => {});
+    }
   }
 };
 </script>
 
 <style scoped>
 .home-container {
-  padding: 20px;
+  padding: 0;
 }
 
 .stat-card {
-  height: 100px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .stat-icon {
   width: 60px;
   height: 60px;
-  border-radius: 50%;
+  border-radius: 8px;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   margin-right: 15px;
 }
 
 .stat-icon i {
-  font-size: 30px;
+  font-size: 24px;
   color: white;
 }
 
@@ -222,6 +223,8 @@ export default {
 
 .chart-card {
   margin-bottom: 20px;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
 .chart-header {
@@ -251,10 +254,30 @@ export default {
 .activity-card, .todo-card {
   height: 350px;
   overflow-y: auto;
+  border-radius: 8px;
+}
+
+.todo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .todo-done {
   text-decoration: line-through;
   color: #909399;
+}
+
+.el-radio-button >>> .el-radio-button__inner {
+  background-color: #f5f7fa;
+  border-color: #dcdfe6;
+  color: #606266;
+}
+
+.el-radio-button.is-active >>> .el-radio-button__inner {
+  background-color: #8B5CF6;
+  border-color: #8B5CF6;
+  color: #fff;
+  box-shadow: -1px 0 0 0 #8B5CF6;
 }
 </style> 
