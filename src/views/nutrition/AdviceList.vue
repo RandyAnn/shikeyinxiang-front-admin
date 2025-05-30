@@ -362,9 +362,15 @@ export default {
         try {
           let response;
           if (this.isEdit) {
-            response = await updateAdvice(this.adviceForm.id, this.adviceForm);
+            // 编辑时，从请求体中排除id字段，因为id通过URL路径参数传递
+            // eslint-disable-next-line
+            const { id, createdAt, updatedAt, ...adviceData } = this.adviceForm;
+            response = await updateAdvice(id, adviceData);
           } else {
-            response = await createAdvice(this.adviceForm);
+            // 新增时，排除id字段
+            // eslint-disable-next-line
+            const { id, createdAt, updatedAt, ...adviceData } = this.adviceForm;
+            response = await createAdvice(adviceData);
           }
 
           if (response.data.code === 200) {

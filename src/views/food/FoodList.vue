@@ -351,7 +351,6 @@ export default {
       'fetchFoodDetail',
       'addFood',
       'updateFood',
-      'updateFoodWithoutImage',
       'deleteFood',
       'getImageDownloadUrl',
       'uploadFoodImage',
@@ -710,18 +709,13 @@ export default {
                 throw new Error('添加食物失败：未获取到食物ID');
               }
             } else if (this.dialogType === 'edit') {
-              // 编辑食物 - 使用延迟更新图片的逻辑
-              if (this.tempFile) {
-                // 如果有新图片，先更新食物基本信息（不包含图片URL）
-                await this.updateFoodWithoutImage({ id: foodData.id, foodData });
-                this.$message.success(`已更新食物: ${foodData.name}`);
+              // 编辑食物 - 统一使用updateFood方法（已经会自动删除imageUrl字段）
+              await this.updateFood({ id: foodData.id, foodData });
+              this.$message.success(`已更新食物: ${foodData.name}`);
 
-                // 然后上传图片
+              // 如果有新图片，上传图片
+              if (this.tempFile) {
                 await this.handleUploadImage();
-              } else {
-                // 如果没有新图片，正常更新所有信息
-                await this.updateFood({ id: foodData.id, foodData });
-                this.$message.success(`已更新食物: ${foodData.name}`);
               }
             }
 

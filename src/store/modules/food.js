@@ -157,33 +157,13 @@ const actions = {
   // 更新食物
   async updateFood({ commit }, { id, foodData }) {
     try {
-      // 创建一个不包含id字段的新对象
-      const foodDataWithoutId = { ...foodData };
-      delete foodDataWithoutId.id;
+      // 创建一个不包含id和imageUrl字段的新对象
+      // 删除imageUrl是为了避免将预签名URL误存为文件路径
+      const foodDataWithoutIdAndImage = { ...foodData };
+      delete foodDataWithoutIdAndImage.id;
+      delete foodDataWithoutIdAndImage.imageUrl;
 
-      const response = await food.updateFood(id, foodDataWithoutId);
-      if (response.data && response.data.code === 200 && response.data.data) {
-        // 清除食物列表缓存和该食物的详情缓存
-        commit('CLEAR_FOOD_LIST_CACHE');
-        commit('REMOVE_FOOD_DETAIL', id);
-        return response.data.data;
-      }
-      return null;
-    } catch (error) {
-      console.error('更新食物失败:', error);
-      throw error;
-    }
-  },
-
-  // 更新食物（不包含图片URL）
-  async updateFoodWithoutImage({ commit }, { id, foodData }) {
-    try {
-      // 创建一个不包含imageUrl和id的新对象
-      const foodDataWithoutImageAndId = { ...foodData };
-      delete foodDataWithoutImageAndId.imageUrl;
-      delete foodDataWithoutImageAndId.id;
-
-      const response = await food.updateFood(id, foodDataWithoutImageAndId);
+      const response = await food.updateFood(id, foodDataWithoutIdAndImage);
       if (response.data && response.data.code === 200 && response.data.data) {
         // 清除食物列表缓存和该食物的详情缓存
         commit('CLEAR_FOOD_LIST_CACHE');
