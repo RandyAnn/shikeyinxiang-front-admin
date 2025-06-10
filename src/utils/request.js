@@ -73,6 +73,10 @@ service.interceptors.response.use(
         Message.error('请求的资源不存在');
         break;
 
+      case 503:
+        Message.error(data.message || '服务暂时不可用，请稍后再试');
+        break;
+
       case 500:
         Message.error('服务器错误，请稍后再试');
         break;
