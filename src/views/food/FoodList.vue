@@ -386,9 +386,9 @@ export default {
       try {
         const params = {
           keyword: this.filterForm.name,
-          categoryId: this.filterForm.categoryId,
           current: this.currentPage,
-          size: this.pageSize
+          size: this.pageSize,
+          ...(this.filterForm.categoryId && { categoryId: this.filterForm.categoryId })
         };
 
         const response = await food.getFoodList(params);

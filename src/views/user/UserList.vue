@@ -302,14 +302,22 @@ export default {
     async fetchUsers() {
       this.loading = true;
       try {
-        // 调用 API 获取用户列表
+        // 调用 API 获取用户列表 - 只传递有值的参数
         const params = {
           page: this.currentPage,
           size: this.pageSize,
-          status: this.statusFilter,
-          keyword: this.searchKeyword,
-          timeFilter: this.timeFilter,
         };
+
+        // 只有当筛选条件有值时才添加到参数中
+        if (this.statusFilter !== "" && this.statusFilter !== null && this.statusFilter !== undefined) {
+          params.status = this.statusFilter;
+        }
+        if (this.searchKeyword && this.searchKeyword.trim() !== "") {
+          params.keyword = this.searchKeyword.trim();
+        }
+        if (this.timeFilter && this.timeFilter.trim() !== "") {
+          params.timeFilter = this.timeFilter.trim();
+        }
 
         const response = await getUserList(params);
 

@@ -28,21 +28,20 @@ export const getNutritionComplianceRate = (date) => {
 };
 
 /**
- * 获取所有营养建议
- * @returns {Promise} - 返回营养建议列表的Promise
+ * 获取营养建议列表（分页）
+ * @param {Object} params - 查询参数
+ * @param {number} params.current - 当前页码，默认1
+ * @param {number} params.size - 每页大小，默认10
+ * @param {string} params.conditionType - 条件类型筛选
+ * @param {number} params.status - 状态筛选
+ * @param {string} params.keyword - 关键词搜索
+ * @returns {Promise} - 返回营养建议分页列表的Promise
  */
-export const getAllAdvices = () => {
-  return request.get(`${API_URL}/api/admin/nutrition/advice`);
+export const getAllAdvices = (params = {}) => {
+  return request.get(`${API_URL}/api/admin/nutrition/advice`, { params });
 };
 
-/**
- * 根据ID获取营养建议
- * @param {number|string} id - 营养建议ID
- * @returns {Promise} - 返回营养建议的Promise
- */
-export const getAdviceById = (id) => {
-  return request.get(`${API_URL}/api/admin/nutrition/advice/${id}`);
-};
+
 
 /**
  * 创建营养建议

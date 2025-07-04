@@ -85,7 +85,7 @@ export const getUploadImageUrl = (foodId, contentType) => {
  * @returns {Promise} - 返回更新结果的Promise
  */
 export const updateFoodImageUrl = (foodId, imageUrl) => {
-  return request.put(`${API_URL}/api/admin/food/${foodId}/image-url`, { imageUrl });
+  return request.put(`${API_URL}/api/admin/food/${foodId}/image`, { imageUrl });
 };
 
 /**

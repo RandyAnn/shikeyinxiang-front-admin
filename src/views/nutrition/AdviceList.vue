@@ -77,6 +77,20 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <!-- 分页组件 -->
+      <div class="pagination-container">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pagination.current"
+          :page-sizes="[10, 20, 50, 100]"
+          :page-size="pagination.size"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="pagination.total"
+        >
+        </el-pagination>
+      </div>
     </el-card>
 
     <!-- 新增/编辑对话框 -->
@@ -165,7 +179,6 @@
 <script>
 import {
   getAllAdvices,
-  getAdvicesByConditionType,
   createAdvice,
   updateAdvice,
   deleteAdvice
@@ -179,6 +192,11 @@ export default {
       submitLoading: false,
       adviceList: [],
       conditionType: '',
+      pagination: {
+        current: 1,
+        size: 10,
+        total: 0
+      },
       dialogVisible: false,
       dialogTitle: '新增营养建议',
       isEdit: false,
@@ -212,15 +230,24 @@ export default {
     async fetchAdviceList() {
       this.loading = true;
       try {
-        let response;
+        const params = {
+          current: this.pagination.current,
+          size: this.pagination.size
+        };
+
+        // 如果有条件类型筛选，添加到参数中
         if (this.conditionType) {
-          response = await getAdvicesByConditionType(this.conditionType);
-        } else {
-          response = await getAllAdvices();
+          params.conditionType = this.conditionType;
         }
 
+        const response = await getAllAdvices(params);
+
         if (response.data.code === 200) {
-          this.adviceList = response.data.data;
+          const data = response.data.data;
+          this.adviceList = data.records || [];
+          this.pagination.total = data.total || 0;
+          this.pagination.current = data.current || 1;
+          this.pagination.size = data.size || 10;
         } else {
           this.$message.error(response.data.message || '获取营养建议列表失败');
         }
@@ -234,6 +261,20 @@ export default {
 
     // 条件类型变更
     handleConditionTypeChange() {
+      this.pagination.current = 1; // 重置到第一页
+      this.fetchAdviceList();
+    },
+
+    // 分页大小变更
+    handleSizeChange(val) {
+      this.pagination.size = val;
+      this.pagination.current = 1; // 重置到第一页
+      this.fetchAdviceList();
+    },
+
+    // 当前页变更
+    handleCurrentChange(val) {
+      this.pagination.current = val;
       this.fetchAdviceList();
     },
 
@@ -474,6 +515,12 @@ export default {
 .percentage-range {
   font-weight: 500;
   color: #409eff;
+}
+
+/* 分页样式 */
+.pagination-container {
+  margin-top: 20px;
+  text-align: center;
 }
 
 /* 对话框样式优化 */
