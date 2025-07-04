@@ -25,7 +25,7 @@ export const getFoodDetail = (foodId) => {
  * @returns {Promise} - 返回食物分类列表的Promise
  */
 export const getFoodCategories = () => {
-  return request.get(`${API_URL}/api/admin/food/categories`);
+  return request.get(`${API_URL}/api/admin/food/category`);
 };
 
 /**
@@ -122,7 +122,7 @@ export const deleteCategory = (categoryId) => {
  * @returns {Promise} - 返回分类列表的Promise
  */
 export const getCategoriesByPage = (params) => {
-  return request.get(`${API_URL}/api/admin/food/category/page`, { params });
+  return request.get(`${API_URL}/api/admin/food/category`, { params });
 };
 
 /**

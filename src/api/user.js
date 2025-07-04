@@ -8,7 +8,7 @@ import { API_URL } from '@/config';
  * @returns {Promise} - 返回用户列表的Promise
  */
 export const getUserList = (params) => {
-  return request.get(`${API_URL}/api/admin/users`, { params });
+  return request.get(`${API_URL}/api/admin/user`, { params });
 };
 
 /**
@@ -17,7 +17,7 @@ export const getUserList = (params) => {
  * @returns {Promise} - 返回用户详情的Promise
  */
 export const getUserDetail = (userId) => {
-  return request.get(`${API_URL}/api/admin/users/${userId}`);
+  return request.get(`${API_URL}/api/admin/user/${userId}`);
 };
 
 /**
@@ -26,8 +26,8 @@ export const getUserDetail = (userId) => {
  * @param {number|boolean} status - 用户状态，1或true表示启用，0或false表示禁用
  * @returns {Promise} - 返回更新结果的Promise
  */
-export const updateUserStatus = (userId, status) => {
-  return request.put(`${API_URL}/api/admin/users/${userId}/status?status=${status ? 1 : 0}`);
+export const updateusertatus = (userId, status) => {
+  return request.put(`${API_URL}/api/admin/user/${userId}/status?status=${status ? 1 : 0}`);
 };
 
 /**
@@ -36,7 +36,7 @@ export const updateUserStatus = (userId, status) => {
  * @returns {Promise} - 返回添加结果的Promise
  */
 export const addUser = (userData) => {
-  return request.post(`${API_URL}/api/admin/users`, userData);
+  return request.post(`${API_URL}/api/admin/user`, userData);
 };
 
 /**
@@ -46,7 +46,7 @@ export const addUser = (userData) => {
  * @returns {Promise} - 返回更新结果的Promise
  */
 export const updateUser = (userId, userData) => {
-  return request.put(`${API_URL}/api/admin/users/${userId}`, userData);
+  return request.put(`${API_URL}/api/admin/user/${userId}`, userData);
 };
 
 /**
@@ -55,5 +55,5 @@ export const updateUser = (userId, userData) => {
  * @returns {Promise} - 返回删除结果的Promise
  */
 export const deleteUser = (userId) => {
-  return request.delete(`${API_URL}/api/admin/users/${userId}`);
+  return request.delete(`${API_URL}/api/admin/user/${userId}`);
 };

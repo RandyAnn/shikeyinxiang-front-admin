@@ -112,8 +112,11 @@ const actions = {
     try {
       const response = await food.getFoodCategories();
       if (response.data && response.data.code === 200 && response.data.data) {
+        // 后端返回分页结构，提取records数组
+        const categoriesData = response.data.data.records || [];
+
         // 后端现在返回的是FoodCategoryDTO对象列表
-        const categories = response.data.data.map(category => ({
+        const categories = categoriesData.map(category => ({
           label: category.name,
           value: category.id,
           color: category.color,

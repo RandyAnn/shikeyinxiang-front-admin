@@ -362,8 +362,11 @@ export default {
       try {
         const response = await food.getFoodCategories();
         if (response.data && response.data.code === 200 && response.data.data) {
+          // 后端返回分页结构，提取records数组
+          const categoriesData = response.data.data.records || [];
+
           // 将后端返回的分类列表转换为前端需要的格式
-          this.categories = response.data.data.map(category => ({
+          this.categories = categoriesData.map(category => ({
             label: category.name,
             value: category.id,
             color: category.color,
